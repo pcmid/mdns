@@ -39,9 +39,9 @@ def main():
 
     elif sys.argv[1] == "package":
         for arch in ["amd64", "arm64", "arm"]:
-            cmd = 'tar -zcvf mdns_{os}_{arch}.tar.gz mdns_{os}_{arch} config.sample.d mdns.service'.format(
+            cmd = 'tar -zcvf mdns_{goos}_{arch}.tar.gz mdns_{goos}_{arch} config.sample.d mdns.service'.format(
                 arch=arch,
-                os=goos,
+                goos=goos,
             )
             print(cmd)
             run_cmd(cmd)
