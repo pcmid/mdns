@@ -27,7 +27,7 @@ jobs:
     - name: Package
       run: python build.py package
 
-    - uses: marvinpinto/action-automatic-releases@latest
+    - uses: marvinpinto/action-automatic-releases@new_release_version
       with:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
           prerelease: false
