@@ -29,7 +29,7 @@ def main():
     goos = "linux"
     if sys.argv[1] == "build":
         for arch in ["amd64", "arm64", "arm"]:
-            cmd = 'GOARCH={arch} go build --ldflags "-X main.version={version}" -o mdns_{goos}_{arch} .'.format(
+            cmd = 'GOARCH={arch} go build --ldflags "-s -w -X main.version={version}" -o mdns_{goos}_{arch} .'.format(
                 arch=arch,
                 version=get_version(),
                 goos=goos
