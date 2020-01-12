@@ -9,7 +9,7 @@ import (
 )
 
 //  go build -ldflags "-X main.version=version"
-var version = "0.2.0"
+var version = ""
 
 func main() {
 
