@@ -1,0 +1,6 @@
+[
+  {
+    "name": "TEST",
+    "domain_file": "conf.d/domain_test.txt"
+  }
+]

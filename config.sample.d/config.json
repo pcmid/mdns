@@ -1,0 +1,13 @@
+{
+  "Addr": ":53",
+  "Upstream": {
+    "Name": "Google DNS",
+    "Address": "8.8.8.8:53",
+    "Protocol": "tcp",
+    "SOCKS5Address": "127.0.0.1:1080",
+    "Timeout": 6
+  },
+
+  "PluginConfDir" : "config.sample.d/",
+  "Plugins" : ["log", "cache", "dispatcher", "ipset"]
+}
