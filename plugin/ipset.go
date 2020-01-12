@@ -65,10 +65,6 @@ func (i *IpSet) Init(configDir string) error {
 			log.Error(err)
 		}
 
-		err = set.Flush()
-		if err != nil {
-			log.Error(err)
-		}
 		i.Set[conf.Name] = set
 	}
 
