@@ -1,0 +1,14 @@
+[Unit]
+Description=mdns Service
+Requires=network.target
+After=dhcpcd.service
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/mdns -c /etc/mdns/config.json
+ExecReload=/usr/bin/kill -HUP $MAINPID
+RestartSec=1min
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

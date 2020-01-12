@@ -1,0 +1,36 @@
+name: tagged-release
+on: 
+  push:
+    tags: "v*"
+
+jobs:
+  build:
+    name: Tagged Release
+    runs-on: ubuntu-latest
+    env:
+      GO111MODULE: on
+      GOOS: linux
+    steps:
+
+    - name: Set up Go 1.13
+      uses: actions/setup-go@v1
+      with:
+        go-version: 1.13
+      id: go
+
+    - name: Check out code into the Go module directory
+      uses: actions/checkout@v1
+
+    - name: Build
+      run: for GOARCH in {amd64,arm64,arm,ppc64,ppc64le}; do echo "go build for ${GOARCH}";GOARCH=${GOARCH} go build -o mdns_${GOOS}_${GOARCH} .; done
+        
+    - name: Package
+      run: for GOARCH in {amd64,arm64,arm,ppc64,ppc64le}; do tar -zcvf mdns_${GOOS}_${GOARCH}.tar.gz mdns_${GOOS}_${GOARCH} config.sample.d mdns.service; done
+
+    - uses: marvinpinto/action-automatic-releases@latest
+      with:
+          repo_token: "${{ secrets.GITHUB_TOKEN }}"
+          prerelease: false
+          files: mdns_*.tar.gz
+    
+    
