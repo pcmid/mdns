@@ -6,6 +6,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"io/ioutil"
 	"os"
+	"strings"
 )
 
 type Config struct {
@@ -35,6 +36,10 @@ func NewConfig(configFile string) *Config {
 	if err != nil {
 		log.Fatal("Json syntax error: ", err)
 		os.Exit(1)
+	}
+
+	if !strings.HasSuffix(j.PluginConfDir,"/") {
+		j.PluginConfDir += "/"
 	}
 
 	return j
