@@ -1,6 +1,10 @@
 [
   {
     "name": "TEST",
-    "domain_file": "conf.d/domain_test.txt"
+    "domain_file": "domain_test.txt"
+  },
+  {
+    "name": "ip_test",
+    "ip_file": "ip_test.txt"
   }
 ]

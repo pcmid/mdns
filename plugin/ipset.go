@@ -22,6 +22,7 @@ type IpSet struct {
 type IpSetConfig []struct {
 	Name       string `json:"name"`
 	DomainFile string `json:"domain_file"`
+	IpFile     string `json:"ip_file"`
 }
 
 func (i *IpSet) Name() string {
@@ -47,13 +48,6 @@ func (i *IpSet) Init(configDir string) error {
 	i.Set = make(map[string]*ipset.IPSet)
 
 	for _, conf := range config {
-
-		domains, err := domain.TreeFromFile(conf.DomainFile)
-		if err != nil {
-			continue
-		}
-		i.Domains[conf.Name] = domains
-
 		set, err := ipset.New(conf.Name, "hash:net", &ipset.Params{})
 		if set == nil {
 			log.Error(err)
@@ -64,6 +58,52 @@ func (i *IpSet) Init(configDir string) error {
 		if err != nil {
 			log.Error(err)
 		}
+
+		func() {
+			domains, err := domain.TreeFromFile(conf.DomainFile)
+			if err != nil {
+				log.Error(err)
+				return
+			}
+			i.Domains[conf.Name] = domains
+
+		}()
+
+		func() {
+			ipFile, errR := os.Open(conf.IpFile)
+			defer func() {
+				_ = ipFile.Close()
+			}()
+
+			if errR != nil {
+				log.Error(errR)
+				return
+			}
+
+			buf := bufio.NewReader(ipFile)
+
+			for {
+
+				line, err := buf.ReadBytes('\n')
+
+				if err != nil && err != io.EOF {
+					continue
+				}
+
+				lineB := make([]byte, len(line))
+				copy(lineB, line)
+
+				lineS := strings.TrimSpace(string(lineB))
+
+				_ = set.Add(lineS, 0)
+
+				if err == io.EOF {
+					break
+				}
+			}
+			buf = nil
+			return
+		}()
 
 		i.Set[conf.Name] = set
 	}
