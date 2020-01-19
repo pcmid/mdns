@@ -8,7 +8,7 @@
         "SOCKS5Address": "",
         "Timeout": 6
       },
-      "DomainFile": "config.sample.d/domain_test.txt"
+      "DomainFile": "domain_test.txt"
     }
   }
 }

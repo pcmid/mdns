@@ -8,6 +8,6 @@
     "Timeout": 6
   },
 
-  "PluginConfDir" : "config.sample.d",
+  "PluginConfDir" : ".",
   "Plugins" : ["log", "cache", "dispatcher", "ipset"]
 }
