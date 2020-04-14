@@ -1,13 +1,53 @@
 {
-  "Addr": ":53",
-  "Upstream": {
-    "Name": "Google DNS",
-    "Address": "8.8.8.8:53",
-    "Protocol": "tcp",
-    "SOCKS5Address": "127.0.0.1:1080",
-    "Timeout": 6
+  "addr": ":53",
+  "upstream": {
+    "name": "Google DNS",
+    "address": "8.8.8.8:53",
+    "protocol": "tcp",
+    "socks5_address": "127.0.0.1:1080",
+    "timeout": 6
   },
-
-  "PluginConfDir" : "config.sample.d",
-  "Plugins" : ["log", "cache", "dispatcher", "ipset"]
+  "plugins": [
+    {
+      "name": "log",
+      "config": {
+        "log_file": ""
+      }
+    },
+    {
+      "name": "cache",
+      "config": {
+        "capacity": 1024,
+        "MTTL": 3600
+      }
+    },
+    {
+      "name": "dispatcher",
+      "config": {
+        "areas": {
+          "TEST": {
+            "upstream": {
+              "name": "114 DNS",
+              "address": "114.114.114.114:53",
+              "protocol": "udp",
+              "socks5_address": "",
+              "timeout": 6
+            },
+            "domain_file": "config.sample.d/domain_test.txt"
+          }
+        }
+      }
+    },
+    {
+      "name": "ipset",
+      "config": {
+        "sets": {
+          "TEST": {
+            "domain_file": "config.sample.d/domain_test.txt",
+            "ip_file": "config.sample.d/ip_test.txt"
+          }
+        }
+      }
+    }
+  ]
 }

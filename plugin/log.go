@@ -1,45 +1,29 @@
 package plugin
 
 import (
-	"encoding/json"
 	"github.com/pcmid/mdns/core/common"
 	"github.com/sirupsen/logrus"
-	"io/ioutil"
 	"os"
 )
 
-type Logger struct {
-	Level   string `json:"level"`
-	LogFile string `json:"log_file"`
-
-	logger *logrus.Logger
-}
-
-type LoggerConfig struct {
-	Level string `json:"level"`
-}
-
 func init() {
 	Register(&Logger{})
+}
+
+type Logger struct {
+	LogFile string `json:"log_file"`
+	logger  *logrus.Logger
 }
 
 func (l *Logger) Name() string {
 	return "log"
 }
 
-func (l *Logger) Init(configDir string) error {
+func (l *Logger) Init(config map[string]interface{}) error {
 	l.logger = logrus.New()
 
-	jsonData, _ := ioutil.ReadFile(configDir + "log.json")
-	config := LoggerConfig{}
+	l.LogFile = config["log_file"].(string)
 
-	err := json.Unmarshal(jsonData, &config)
-
-	if err != nil {
-		return err
-	}
-
-	l.logger.Level, _ = logrus.ParseLevel(config.Level)
 	if l.LogFile != "" {
 		logFile, err := os.OpenFile(l.LogFile, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0644)
 		if err != nil {

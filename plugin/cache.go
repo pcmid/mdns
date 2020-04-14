@@ -5,14 +5,16 @@
 package plugin
 
 import (
-	"encoding/json"
 	"github.com/miekg/dns"
 	"github.com/pcmid/mdns/core/common"
 	log "github.com/sirupsen/logrus"
-	"io/ioutil"
 	"sync"
 	"time"
 )
+
+func init() {
+	Register(&Cache{})
+}
 
 type elem struct {
 	expiration time.Time
@@ -27,27 +29,15 @@ type Cache struct {
 	mTTL     uint32
 }
 
-type CacheConfig struct {
-	Capacity int
-	MTTL     uint32
-}
-
 func (c *Cache) Name() string {
 	return "cache"
 }
 
-func (c *Cache) Init(configDir string) error {
-	configData, _ := ioutil.ReadFile(configDir + "cache.json")
-	conf := CacheConfig{}
-	err := json.Unmarshal(configData, &conf)
-
-	if err != nil {
-		return err
-	}
+func (c *Cache) Init(config map[string]interface{}) error {
 
 	c.table = make(map[dns.Question]*elem)
-	c.capacity = conf.Capacity
-	c.mTTL = conf.MTTL
+	c.capacity = int(config["capacity"].(float64))
+	c.mTTL = uint32(config["MTTL"].(float64))
 
 	return nil
 }
@@ -67,10 +57,6 @@ func (c *Cache) HandleDns(ctx *common.Context) {
 			c.InsertMessage(ctx.Response)
 		}
 	}
-}
-
-func init() {
-	Register(&Cache{})
 }
 
 func (c *Cache) Capacity() int { return c.capacity }

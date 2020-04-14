@@ -1,11 +1,10 @@
 package plugin
 
 import (
-	"encoding/json"
+	"github.com/mitchellh/mapstructure"
 	"github.com/pcmid/mdns/core/common"
 	"github.com/pcmid/mdns/plugin/lib/domain"
 	log "github.com/sirupsen/logrus"
-	"io/ioutil"
 )
 
 func init() {
@@ -19,51 +18,39 @@ type DispatcherConf struct {
 	}
 }
 
+type Area struct {
+	Domains  *domain.Tree
+	Upstream *common.DNSUpstream
+}
+
 type Dispatcher struct {
-	Areas map[string]struct {
-		Domains  *domain.Tree
-		Upstream *common.DNSUpstream
-	}
+	Areas map[string]Area
 }
 
 func (d *Dispatcher) Name() string {
 	return "dispatcher"
 }
 
-func (d *Dispatcher) Init(configDir string) error {
+func (d *Dispatcher) Init(config map[string]interface{}) error {
 
-	d.Areas = make(map[string]struct {
-		Domains  *domain.Tree
-		Upstream *common.DNSUpstream
-	})
+	d.Areas = make(map[string]Area)
 
-	configData, err := ioutil.ReadFile(configDir + "dispatcher.json")
+	areas := config["areas"].(map[string]interface{})
 
-	if err != nil {
-		return err
-	}
+	for name, conf := range areas {
+		area := Area{}
 
-	conf := DispatcherConf{}
+		area.Upstream = new(common.DNSUpstream)
+		_ = mapstructure.Decode(conf.(map[string]interface{})["upstream"], area.Upstream)
 
-	err = json.Unmarshal(configData, &conf)
-
-	if err != nil {
-		return err
-	}
-
-	for i := range conf.Areas {
-		area := struct {
-			Domains  *domain.Tree
-			Upstream *common.DNSUpstream
-		}{}
-		area.Upstream = conf.Areas[i].Upstream
-		area.Domains, err = domain.TreeFromFile(conf.Areas[i].DomainFile)
+		var err error
+		area.Domains, err = domain.TreeFromFile(conf.(map[string]interface{})["domain_file"].(string))
 		if err != nil {
 			log.Error(err)
 			continue
 		}
 
-		d.Areas[i] = area
+		d.Areas[name] = area
 	}
 
 	return nil

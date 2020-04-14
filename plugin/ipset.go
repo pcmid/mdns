@@ -2,80 +2,65 @@ package plugin
 
 import (
 	"bufio"
-	"encoding/json"
 	"github.com/miekg/dns"
 	"github.com/pcmid/mdns/core/common"
 	"github.com/pcmid/mdns/plugin/lib/domain"
 	"github.com/pcmid/mdns/plugin/lib/ipset"
 	log "github.com/sirupsen/logrus"
 	"io"
-	"io/ioutil"
 	"os"
 	"strings"
 )
 
-type IpSet struct {
+func init() {
+	Register(&Ipset{})
+}
+
+type Ipset struct {
 	Domains map[string]*domain.Tree
 	Set     map[string]*ipset.IPSet
 }
 
-type IpSetConfig []struct {
-	Name       string `json:"name"`
-	DomainFile string `json:"domain_file"`
-}
-
-func (i *IpSet) Name() string {
+func (i *Ipset) Name() string {
 	return "ipset"
 }
 
-func (i *IpSet) Init(configDir string) error {
-	jsonData, err := ioutil.ReadFile(configDir + "ipset.json")
-
-	if err != nil {
-		return err
-	}
-
-	var config IpSetConfig
-
-	err = json.Unmarshal(jsonData, &config)
-
-	if err != nil {
-		return err
-	}
+func (i *Ipset) Init(config map[string]interface{}) error {
 
 	i.Domains = make(map[string]*domain.Tree)
 	i.Set = make(map[string]*ipset.IPSet)
 
-	for _, conf := range config {
+	sets := config["sets"].(map[string]interface{})
 
-		domains, err := domain.TreeFromFile(conf.DomainFile)
+	for name := range sets {
+
+		domains, err := domain.TreeFromFile(sets[name].(map[string]interface{})["domain_file"].(string))
 		if err != nil {
 			continue
 		}
-		i.Domains[conf.Name] = domains
+		i.Domains[name] = domains
 
-		set, err := ipset.New(conf.Name, "hash:net", &ipset.Params{})
+		set, err := ipset.New(name, "hash:net", &ipset.Params{})
 		if set == nil {
 			log.Error(err)
 			continue
 		}
-
 		err = set.Create()
 		if err != nil {
 			log.Error(err)
 		}
 
-		i.Set[conf.Name] = set
+		i.Set[name] = set
 	}
 
 	return nil
 }
 
-func (i *IpSet) Where() uint8 {
+func (i *Ipset) Where() uint8 {
 	return OUT
 }
 
-func (i *IpSet) HandleDns(ctx *common.Context) {
+func (i *Ipset) HandleDns(ctx *common.Context) {
 	if ctx.Response != nil && len(ctx.Response.Answer) <= 0 {
 		return
 	}
@@ -93,10 +78,6 @@ func (i *IpSet) HandleDns(ctx *common.Context) {
 			break
 		}
 	}
-}
-
-func init() {
-	Register(&IpSet{})
 }
 
 func parseIPList(file string) []string {
