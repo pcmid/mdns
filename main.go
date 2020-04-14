@@ -23,7 +23,7 @@ func main() {
 	flag.StringVar(&configPath, "c", "./config.json", "config file path")
 	flag.StringVar(&logPath, "l", "", "log file path")
 	flag.BoolVar(&isLogVerbose, "v", false, "verbose mode")
-	flag.BoolVar(&isShowVersion, "V", false, "current version of overture")
+	flag.BoolVar(&isShowVersion, "V", false, "current version of mdns")
 	flag.Parse()
 
 	if isShowVersion {
@@ -51,5 +51,5 @@ func main() {
 		}
 	}
 
-	core.InitServer(configPath)
+	core.InitServer(configPath).Run()
 }
