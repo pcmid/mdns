@@ -32,7 +32,7 @@ func init() {
 
 type Plugin interface {
 	Name() string
-	Init(configDir string) error
+	Init(config map[string]interface{}) error
 	Where() uint8
 	HandleDns(*common.Context)
 }

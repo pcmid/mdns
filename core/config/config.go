@@ -6,15 +6,17 @@ import (
 	log "github.com/sirupsen/logrus"
 	"io/ioutil"
 	"os"
-	"strings"
 )
 
 type Config struct {
-	Addr     string `json:"Addr"`
-	Upstream *common.DNSUpstream
+	Addr     string              `json:"addr"`
+	Upstream *common.DNSUpstream `json:"upstream"`
 
-	PluginConfDir string
-	Plugins       []string
+	//PluginConfDir string
+	Plugins []struct {
+		Name   string                 `json:"name"`
+		Config map[string]interface{} `json:"config"`
+	} `json:"plugins"`
 }
 
 func NewConfig(configFile string) *Config {
@@ -36,10 +38,6 @@ func NewConfig(configFile string) *Config {
 	if err != nil {
 		log.Fatal("Json syntax error: ", err)
 		os.Exit(1)
-	}
-
-	if !strings.HasSuffix(j.PluginConfDir,"/") {
-		j.PluginConfDir += "/"
 	}
 
 	return j
