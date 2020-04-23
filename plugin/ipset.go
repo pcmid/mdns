@@ -69,6 +69,9 @@ func (i *Ipset) HandleDns(ctx *common.Context) {
 	for setName := range i.Domains {
 		if i.Domains[setName].Has(domain.Domain(ctx.Response.Question[0].Name)) {
 			for _, ans := range ctx.Response.Answer {
+				if ans.Header().Rrtype != dns.TypeA {
+					continue
+				}
 				err := i.Set[setName].Add(dns.Field(ans, 1), 0)
 				log.Debugf("ipset add %s to %s", ctx.Response.Question[0].Name, setName)
 				if err != nil {
