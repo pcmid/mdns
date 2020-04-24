@@ -71,7 +71,7 @@ func (i *Ipset) Where() uint8 {
 
 func (i *Ipset) HandleDns(ctx *common.Context) {
 
-	if ctx.Response != nil && len(ctx.Response.Answer) <= 0 && ctx.Query.Question[0].Qtype != dns.TypeA {
+	if ctx.Response != nil && len(ctx.Response.Answer) <= 0 {
 		return
 	}
 	log.Debug(dns.Field(ctx.Response.Answer[0], 1))
@@ -79,6 +79,9 @@ func (i *Ipset) HandleDns(ctx *common.Context) {
 	for setName := range i.Domains {
 		if i.Domains[setName].Has(domain.Domain(ctx.Response.Question[0].Name)) {
 			for _, ans := range ctx.Response.Answer {
+				if ans.Header().Rrtype != dns.TypeA {
+					continue
+				}
 
 				err := i.Set[setName].Add(dns.Field(ans, 1), func(a, b int) int {
 					if a > b {
