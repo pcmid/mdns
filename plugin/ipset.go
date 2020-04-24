@@ -35,9 +35,7 @@ func (i *Ipset) Init(config map[string]interface{}) error {
 	for name := range sets {
 
 		domains, err := domain.TreeFromFile(sets[name].(map[string]interface{})["domain_file"].(string))
-		if err != nil {
-			continue
-		}
+
 		i.Domains[name] = domains
 
 		set, err := ipset.New(name, "hash:ip", &ipset.Params{
@@ -52,6 +50,15 @@ func (i *Ipset) Init(config map[string]interface{}) error {
 			log.Error(err)
 		}
 
+		IpFile := sets[name].(map[string]interface{})["ip_file"].(string)
+
+		for _, ip := range parseIPList(IpFile) {
+			if err = set.Add(ip, 0); err != nil {
+				log.Error(err)
+			}
+
+		}
+
 		i.Set[name] = set
 	}
 
@@ -63,7 +70,7 @@ func (i *Ipset) Where() uint8 {
 }
 
 func (i *Ipset) HandleDns(ctx *common.Context) {
-	if ctx.Response != nil && len(ctx.Response.Answer) <= 0 {
+	if ctx.Response != nil && len(ctx.Response.Answer) <= 0 && ctx.Query.Question[0].Qtype != dns.TypeA {
 		return
 	}
 	log.Debug(dns.Field(ctx.Response.Answer[0], 1))
@@ -71,7 +78,7 @@ func (i *Ipset) HandleDns(ctx *common.Context) {
 	for setName := range i.Domains {
 		if i.Domains[setName].Has(domain.Domain(ctx.Response.Question[0].Name)) {
 			for _, ans := range ctx.Response.Answer {
-				err := i.Set[setName].Add(dns.Field(ans, 1), 0)
+				err := i.Set[setName].Add(dns.Field(ans, 1), int(ans.Header().Ttl)*10)
 				log.Debugf("ipset add %s to %s", ctx.Response.Question[0].Name, setName)
 				if err != nil {
 					log.Error(err)
