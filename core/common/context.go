@@ -13,20 +13,20 @@ type Context struct {
 
 	IsQuery bool
 
-	returned bool
+	Returned bool
 }
 
 func (c *Context) Return() {
-	if c.returned == true {
+	if c.Returned == true {
 		return
 	}
 
 	_ = c.Client.WriteMsg(c.Response)
 	_ = c.Client.Close()
-	c.returned = true
+	c.Returned = true
 }
 
 func (c *Context) Abort() {
 	_ = c.Client.Close()
-	c.returned = true
+	c.Returned = true
 }

@@ -104,6 +104,11 @@ func (s *Server) ServeDNS(w dns.ResponseWriter, q *dns.Msg) {
 }
 
 func (s *Server) Exchange(ctx *common.Context) {
+
+	if ctx.Returned {
+		return
+	}
+
 	if ctx.Upstream == nil {
 		ctx.Upstream = s.upstream
 	}
