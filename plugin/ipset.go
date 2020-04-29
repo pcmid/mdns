@@ -38,8 +38,8 @@ func (i *Ipset) Init(config map[string]interface{}) error {
 
 		i.Domains[name] = domains
 
-		set, err := ipset.New(name, "hash:ip", &ipset.Params{
-			Timeout: 600,
+		set, err := ipset.New(name, "hash:net", &ipset.Params{
+			Timeout: 0,
 		})
 		if set == nil {
 			log.Error(err)
