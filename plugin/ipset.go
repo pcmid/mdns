@@ -33,22 +33,30 @@ func (i *Ipset) Init(config map[string]interface{}) error {
 	sets := config["sets"].(map[string]interface{})
 
 	for name := range sets {
+		set, err := ipset.New(name, "hash:net", &ipset.Params{
+			Timeout: 0,
+		})
+
+		if set == nil {
+			log.Error(err)
+			continue
+		}
+
+		i.Set[name] = set
+
+		err = set.Create()
+		if err != nil {
+			log.Error(err)
+		}
+
+		if name == "DEFAULT" {
+			continue
+		}
 
 		domains, err := domain.TreeFromFile(sets[name].(map[string]interface{})["domain_file"].(string))
 
 		i.Domains[name] = domains
 
-		set, err := ipset.New(name, "hash:net", &ipset.Params{
-			Timeout: 0,
-		})
-		if set == nil {
-			log.Error(err)
-			continue
-		}
-		err = set.Create()
-		if err != nil {
-			log.Error(err)
-		}
 
 		IpFile := sets[name].(map[string]interface{})["ip_file"].(string)
 
@@ -59,7 +67,6 @@ func (i *Ipset) Init(config map[string]interface{}) error {
 
 		}
 
-		i.Set[name] = set
 	}
 
 	return nil
@@ -94,7 +101,29 @@ func (i *Ipset) HandleDns(ctx *common.Context) {
 					log.Error(err)
 				}
 			}
-			break
+			return
+		}
+	}
+
+	log.Debug("ipset not matched, check default")
+
+	// default set
+	if defaultSet, ok := i.Set["DEFAULT"]; ok {
+		for _, ans := range ctx.Response.Answer {
+			if ans.Header().Rrtype != dns.TypeA {
+				continue
+			}
+
+			err := defaultSet.Add(dns.Field(ans, 1), func(a, b int) int {
+				if a > b {
+					return a
+				}
+				return b
+			}(int(ans.Header().Ttl), 3600))
+			log.Debugf("ipset add %s to %s", ctx.Response.Question[0].Name, "DEFAULT")
+			if err != nil {
+				log.Error(err)
+			}
 		}
 	}
 }

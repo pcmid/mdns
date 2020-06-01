@@ -1,5 +1,5 @@
 {
-  "addr": ":53",
+  "addr": ":5353",
   "upstream": {
     "name": "Google DNS",
     "address": "8.8.8.8:53",
@@ -42,6 +42,7 @@
       "name": "ipset",
       "config": {
         "sets": {
+          "DEFAULT": {},
           "TEST": {
             "domain_file": "config.sample.d/domain_test.txt",
             "ip_file": "config.sample.d/ip_test.txt"
